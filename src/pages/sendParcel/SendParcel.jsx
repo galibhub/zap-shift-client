@@ -23,7 +23,7 @@ const SendParcel = () => {
     return districts;
   };
 
-  console.log(regions);
+//   console.log(regions);
 
   const handleSendParcel = (data) => {
     console.log(data);
