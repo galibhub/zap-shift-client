@@ -1,13 +1,22 @@
 import { useForm, useWatch } from "react-hook-form";
 import { useLoaderData } from "react-router-dom";
+import Swal from "sweetalert2";
+import useAxiosSecure from "../../hooks/useAxiosSecure";
+import useAuth from "../../hooks/useAuth";
 
 const SendParcel = () => {
   const {
     register,
     handleSubmit,
-  control,
-    formState: { errors },
+    control,
+    // formState: { errors },
   } = useForm();
+
+
+
+  const {user}=useAuth();
+  const axiosSecure=useAxiosSecure();
+
 
   const serviceCenters = useLoaderData();
   const regionsDuplicate = serviceCenters.map((c) => c.region);
@@ -26,8 +35,54 @@ const SendParcel = () => {
 //   console.log(regions);
 
   const handleSendParcel = (data) => {
-    console.log(data);
-  };
+  console.log(data);
+  const isDocument = data.parcelType === 'document';
+  const isSameDistrict = data.senderDistrict === data.receiverDistrict;
+
+  const parcelWeight = parseFloat(data.parcelWeight);
+  let cost = 0;
+  
+  if (isDocument) {
+    cost = isSameDistrict ? 60 : 80;
+  } else {
+    if (parcelWeight < 3) {
+      cost = isSameDistrict ? 110 : 150;
+    } else {
+      const minCharge = isSameDistrict ? 110 : 150;
+      const extraWeight = parcelWeight - 3;
+      const extraCharge = isSameDistrict ? extraWeight * 40 : extraWeight * 40 + 40;
+      cost = minCharge + extraCharge;
+    }
+  }
+  
+  console.log('cost:', cost);
+ data.cost=cost;
+ 
+  Swal.fire({
+  title: "Agree with the Cost ?",
+  text: `You will be charged ${cost} taka!`,
+  icon: "warning",
+  showCancelButton: true,
+  confirmButtonColor: "#3085d6",
+  cancelButtonColor: "#d33",
+  confirmButtonText: "I Agree! "
+}).then((result) => {
+  if (result.isConfirmed) {
+
+     //save the parcel into to the database
+     axiosSecure.post('/parcels',data)
+     .then(res=>{
+        console.log('after saving parcel',res.data);
+     })
+
+    // Swal.fire({
+    //   title: "Deleted!",
+    //   text: "Your file has been deleted.",
+    //   icon: "success"
+    // });
+  }
+});
+};
   return (
     <div>
       <h2 className="text-5xl font-bold">Send A Parcel</h2>
@@ -77,7 +132,7 @@ const SendParcel = () => {
             <input
               type="number"
               className="input w-full"
-              {...register("parceWeight")}
+              {...register("parcelWeight")}
               placeholder="Parcel Weight"
             />
           </fieldset>
@@ -93,6 +148,7 @@ const SendParcel = () => {
               type="text"
               className="input w-full"
               {...register("senderName")}
+              defaultValue={user?.displayName}
               placeholder="Sender name"
             />
 
@@ -102,6 +158,7 @@ const SendParcel = () => {
               type="text"
               className="input w-full"
               {...register("senderEmail")}
+              defaultValue={user?.email}
               placeholder="Sender Email"
             />
 
@@ -198,7 +255,7 @@ const SendParcel = () => {
 
 
 
-  {/* Reciever district */}
+          {/* Reciever district */}
             <fieldset className="fieldset">
               <legend className="fieldset-legend">Receiver Districts</legend>
               <select
