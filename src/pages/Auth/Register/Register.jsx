@@ -4,6 +4,7 @@ import useAuth from "../../../hooks/useAuth";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import SocialLogin from "../SocialLogin/SocialLogin";
 import axios from "axios";
+import useAxiosSecure from "../../../hooks/useAxiosSecure";
 
 const Register = () => {
   const {
@@ -12,49 +13,57 @@ const Register = () => {
     formState: { errors },
   } = useForm();
 
-  const { registerUser,updateUserProfile } = useAuth();
-  const location=useLocation()
-  const navigate=useNavigate()
+  const { registerUser, updateUserProfile } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const axiosSecure = useAxiosSecure();
 
   const handleRegistratrion = (data) => {
-    console.log("after register", data.photo[0]);
-    const profileImg=data.photo[0];
+    // console.log("after register", data.photo[0]);
+    const profileImg = data.photo[0];
     registerUser(data.email, data.password)
-      .then((result) => {
-        console.log(result.user);
+      .then(() => {
+        // console.log(result.user);
 
+        //1.store the image in formData
+        const formData = new FormData();
+        formData.append("image", profileImg);
 
-         //1.store the image in formData 
-         const formData=new FormData();
-         formData.append('image',profileImg)
+        //2.Send the photo to store and get the url-imgbb
+        const image_API_URL = `https://api.imgbb.com/1/upload?key=${
+          import.meta.env.VITE_image_host_key
+        }`;
+        axios.post(image_API_URL, formData).then((res) => {
+          const photoURl = res.data.data.url;
 
-         //2.Send the photo to store and get the url-imgbb
-         const image_API_URL=`https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_image_host_key}`
-         axios.post(image_API_URL,formData)
-         .then(res=>{
-          console.log('After image Upload',res.data.data.url)
+          //4.create user into the database
+          const userInfo = {
+            email: data.email,
+            displayName: data.name,
+            photoURL: photoURl,
+          };
 
-           //3.update user profile to firebase
-           const userProfile={
-            displayName:data.name,
-            photoURL:res.data.data.url
-           }
+          axiosSecure.post("/users", userInfo).then((res) => {
+            if (res.data.insertedId) {
+              console.log("user created in the database");
+            }
+          });
 
-           
-           updateUserProfile(userProfile)
-           .then(()=>{
-            console.log('User profile Updated')
-            navigate(location?.state || '/')
-           })
-           .catch(error=>{
-            console.log('error found',error)
-           })
+          //3.update user profile to firebase
+          const userProfile = {
+            displayName: data.name,
+            photoURL: photoURl,
+          };
 
-         })
-         
-       
-
-
+          updateUserProfile(userProfile)
+            .then(() => {
+              console.log("User profile Updated");
+              navigate(location?.state || "/");
+            })
+            .catch((error) => {
+              console.log("error found", error);
+            });
+        });
       })
       .catch((error) => {
         console.log(error);
@@ -82,7 +91,7 @@ const Register = () => {
 
           {/* image */}
           <label className="label">Image</label>
-         
+
           <input
             type="file"
             {...register("photo", { required: true })}
@@ -143,7 +152,11 @@ const Register = () => {
         </fieldset>
         <p className="font-bold">
           Already have an account?{" "}
-          <Link state={location.state} className="text-blue-400 underline" to="/login">
+          <Link
+            state={location.state}
+            className="text-blue-400 underline"
+            to="/login"
+          >
             Login
           </Link>
         </p>

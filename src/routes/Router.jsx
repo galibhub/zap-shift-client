@@ -14,6 +14,7 @@ import Payment from "../pages/Dashboard/Payment/Payment";
 import PaymentSuccess from "../pages/Dashboard/Payment/PaymentSuccess";
 import PaymentCancelled from "../pages/Dashboard/Payment/PaymentCancelled";
 import PaymentHistory from "../pages/Dashboard/PaymentHistory/PaymentHistory";
+import ApproveRaiders from "../pages/Dashboard/ApproveRaider/ApproveRaiders";
 
 export const router = createBrowserRouter([
   {
@@ -28,7 +29,8 @@ export const router = createBrowserRouter([
         path:'raider',
         element:<PrivetRoute>
           <Raider></Raider>
-        </PrivetRoute>
+        </PrivetRoute>,
+        loader:()=>fetch('/serviceCenter.json').then(res=>res.json())
       },
 
       {
@@ -93,6 +95,10 @@ export const router = createBrowserRouter([
       {
         path:'payment-cancelled',
         Component:PaymentCancelled
+      },
+      {
+        path:'approve-raiders',
+        Component:ApproveRaiders
       }
     ]
 
