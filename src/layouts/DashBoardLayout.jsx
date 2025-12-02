@@ -1,10 +1,13 @@
 import React from "react";
 import { CiDeliveryTruck } from "react-icons/ci";
-import { FaRegCreditCard } from "react-icons/fa";
+import { FaRegCreditCard, FaUsers } from "react-icons/fa";
 import { MdDirectionsBike } from "react-icons/md";
 import { Link, NavLink, Outlet } from "react-router-dom";
+import useRole from "../hooks/useRole";
 
 const DashBoardLayout = () => {
+  const { role } = useRole();
+  console.log('in the dashboard Layout',role);
   return (
     <div className="drawer lg:drawer-open max-w-7xl mx-auto">
       <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
@@ -69,13 +72,11 @@ const DashBoardLayout = () => {
                   <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path>
                   <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                 </svg>
-              
+
                 <span className="is-drawer-close:hidden">Homepage</span>
               </Link>
             </li>
-
             {/* Our DashBoard Links */}
-
             <li>
               <NavLink
                 className="is-drawer-close:tooltip is-drawer-close:tooltip-right"
@@ -87,9 +88,7 @@ const DashBoardLayout = () => {
                 <span className="is-drawer-close:hidden">My Parcels</span>
               </NavLink>
             </li>
-
             {/* payment history */}
-
             <li>
               <NavLink
                 className="is-drawer-close:tooltip is-drawer-close:tooltip-right"
@@ -103,17 +102,47 @@ const DashBoardLayout = () => {
             </li>
 
 
-             <li>
-              <NavLink
-                className="is-drawer-close:tooltip is-drawer-close:tooltip-right"
-                data-tip="Approve Raiders"
-                to="/dashboard/approve-raiders"
-              >
-                {" "}
-               <MdDirectionsBike />
-                <span className="is-drawer-close:hidden">Approve Raiders</span>
-              </NavLink>
-            </li>
+
+
+
+            {role === "admin" && (
+              <>
+                <li>
+                  <NavLink
+                    className="is-drawer-close:tooltip is-drawer-close:tooltip-right"
+                    data-tip="Approve Raiders"
+                    to="/dashboard/approve-raiders"
+                  >
+                    {" "}
+                    <MdDirectionsBike />
+                    <span className="is-drawer-close:hidden">
+                      Approve Raiders
+                    </span>
+                  </NavLink>
+                </li>
+
+                <li>
+                  <NavLink
+                    className="is-drawer-close:tooltip is-drawer-close:tooltip-right"
+                    data-tip="Users Management"
+                    to="/dashboard/users-management"
+                  >
+                    {" "}
+                    <FaUsers></FaUsers>
+                    <span className="is-drawer-close:hidden">
+                      Users Management
+                    </span>
+                  </NavLink>
+                </li>
+              </>
+            )} 
+
+
+
+
+
+
+
 
             {/* List item */}
             <li>
